@@ -14,6 +14,13 @@ let Graph = class{
         this.nodes[id] = {x:x, y:y};
     }
 
+    getPathDistance(path){
+        let distance = 0;
+        for(let i = 0; i < path.length - 1; i++)
+            distance += this.getDistance(path[i], path[i + 1]);
+        return distance;
+    }
+
     getDistance(node_id, other_id)
     {
         return this.getDistance_Nodes(this.nodes[node_id], this.nodes[other_id]);
@@ -46,26 +53,56 @@ let newId = function(){
     return function(){return id++;}
 }();
 
-//Generate graph
-let graph = new Graph();
-for(let i = 0; i < 10; i++){
-    graph.addNode(Math.random() * 100, Math.random() * 100, newId());
+function generateGraph(points){
+    //Generate graph
+    let graph = new Graph();
+    for(let i = 0; i < points; i++){
+        graph.addNode(Math.random() * 300, Math.random() * 300, newId());
+    }
+    return graph;
 }
 
-let nodeIds = graph.getNodeIds();
-let pathNodes = [nodeIds[0]]; //Start with first
-while(true)
-{
-    let distances = graph.getDistances(pathNodes[pathNodes.length - 1]);
-    distances.sort(function(a, b){ return a.distance - b.distance; });
-    distances = distances.filter(function(a){return pathNodes.indexOf(a.id) == -1;}) //only not in pathnodes
+function generatePath(graph){
+    let nodeIds = graph.getNodeIds();
+    let pathNodes = [nodeIds[0]]; //Start with first
+    while(true)
+    {
+        let distances = graph.getDistances(pathNodes[pathNodes.length - 1]);
+        distances.sort(function(a, b){ return a.distance - b.distance; });
+        distances = distances.filter(function(a){return pathNodes.indexOf(a.id) == -1;}) //only not in pathnodes
 
-    if(distances.length == 0)
-        break;
+        if(distances.length == 0)
+            break;
 
-    pathNodes.push(distances[0].id); //Shortest
+        pathNodes.push(distances[0].id); //Shortest
+    }
+
+    pathNodes.push(pathNodes[0]);
+    return pathNodes;
 }
 
-pathNodes.push(pathNodes[0]);
+function showPath(path, graph){
+    var ctx = document.getElementById("myCanvas").getContext("2d");
+    ctx.beginPath();
+    ctx.moveTo(graph.nodes[path[0]].x, graph.nodes[path[0]].y);
+    ctx.fillRect(graph.nodes[path[0]].x - 5, graph.nodes[path[0]].y - 5, 10, 10);
+    
+    for(let i = 1; i < path.length; i++)
+    {
+        ctx.lineTo(graph.nodes[path[i]].x, graph.nodes[path[i]].y);
+        ctx.fillRect(graph.nodes[path[i]].x - 3, graph.nodes[path[i]].y - 3, 6, 6);
+    }
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-console.log(pathNodes);
+    let distance = graph.getPathDistance(path);
+    document.getElementById("hl").innerText = "Distance: " + distance; 
+}
+
+function start(){
+    let graph = generateGraph(10);
+    let path = generatePath(graph);
+    showPath(path, graph);
+}
+
+window.onload = start;
