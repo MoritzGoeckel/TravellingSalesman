@@ -53,8 +53,8 @@ let newId = function(){
     return function(){return id++;}
 }();
 
+//Generate graph with random nodes
 function generateGraph(points){
-    //Generate graph
     let graph = new Graph();
     for(let i = 0; i < points; i++){
         graph.addNode(Math.random() * 300, Math.random() * 300, newId());
@@ -62,7 +62,8 @@ function generateGraph(points){
     return graph;
 }
 
-function generatePath(graph){
+//Generate the path with the nearest neighbour method
+function generatePathNearestNeighbour(graph){
     let nodeIds = graph.getNodeIds();
     let pathNodes = [nodeIds[0]]; //Start with first
     while(true)
@@ -81,8 +82,84 @@ function generatePath(graph){
     return pathNodes;
 }
 
+//functions for the genetic generation of best paths
+function generatePathGenetic(graph){
+
+    //Generate a random path to start from
+    let generateRandomPath = function(){
+        let nodeIds = graph.getNodeIds();
+        let pathNodes = [nodeIds[0]]; //Start with first
+        nodeIds = nodeIds.filter(function(a){return a != nodeIds[0];})
+        
+        for(let i = 0; i < nodeIds.length; )
+        {
+            let a = Math.round(Math.random() * (nodeIds.length - 1));
+            pathNodes.push(nodeIds[a]);
+            nodeIds.splice(a, 1);
+        }
+
+        pathNodes.push(pathNodes[0]);
+
+        return pathNodes;
+    }
+
+    //Mutate the path a little
+    let mutatePath = function(path){
+        let outputPath = path.copy(0, path.length);
+        let toMutate = Math.round(Math.random() * 3 + 1);
+        for(let i = 0; i < toMutate; i++){
+            let randomIndex = Math.round(Math.random() * (outputPath.length - 1));
+            let randomOtherIndex = Math.round(Math.random() * (outputPath.length - 1));
+            
+            let elem = outputPath[randomIndex];
+            outputPath.splice(randomIndex, 1);
+            outputPath.insert(randomOtherIndex, elem);
+        }
+        return outputPath;
+    }
+
+    //Get the most fit paths to survive
+    let selectSurvivingPaths = function(paths, graph, count){
+        paths.sort(function(a, b){return graph.getPathDistance(a) - graph.getPathDistance(b);});
+        return paths.splice(0, count);
+    }
+    
+    //Create a new generation: NewGeneration = offspring -> mutation + parents -> selection
+    let doGeneration(oldGeneration, offspringPerRound, survivorsPerRound){
+        let newGeneration = [];
+        for(let p = 0; p < oldGeneration.length; p++)
+            for(let i = 0; i < offspringPerRound / oldGeneration.length; i++)
+                newGeneration.push(mutatePath(oldGeneration[p]));
+
+        for(let p = 0; p < oldGeneration.length; p++)
+            newGeneration.push(oldGeneration[p]); //Also add the parents to the offspring
+
+        let survivors = selectSurvivingPaths(newGeneration, graph, survivorsPerRound);
+        return survivors;
+    }
+
+    //Main programm to do the genetic algorithm
+    let generationsCount = 1000;
+    let offspringPerGeneration = 100;
+    let survivorsPerRound = 10;
+
+    //Initial generation is some random paths
+    let generation = [];
+    for(let i = 0; i < survivorsPerRound; i++)
+        generation.push(generateRandomPath());
+
+    //Going through the generations
+    for(let i = 0; i < generationsCount; i++)
+        generation = doGeneration(generation, offspringPerGeneration, survivorsPerRound);
+
+    //Output the best path
+    return newGeneration[0];
+}
+
+//Show path and points
 function showPath(path, graph){
     var ctx = document.getElementById("myCanvas").getContext("2d");
+    //ctx.clear();
     ctx.beginPath();
     ctx.moveTo(graph.nodes[path[0]].x, graph.nodes[path[0]].y);
     ctx.fillRect(graph.nodes[path[0]].x - 5, graph.nodes[path[0]].y - 5, 10, 10);
@@ -99,9 +176,11 @@ function showPath(path, graph){
     document.getElementById("hl").innerText = "Distance: " + distance; 
 }
 
+//---------------- MAIN ------------------
+let graph = generateGraph(10);
 function start(){
-    let graph = generateGraph(10);
-    let path = generatePath(graph);
+    let path = generatePathGenetic(graph);
+    //let path = generatePathNearestNeighbour(graph);
     showPath(path, graph);
 }
 
