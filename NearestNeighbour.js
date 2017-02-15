@@ -125,7 +125,7 @@ function generatePathGenetic(graph){
     }
     
     //Create a new generation: NewGeneration = offspring -> mutation + parents -> selection
-    let doGeneration(oldGeneration, offspringPerRound, survivorsPerRound){
+    let doGeneration = function(oldGeneration, offspringPerRound, survivorsPerRound){
         let newGeneration = [];
         for(let p = 0; p < oldGeneration.length; p++)
             for(let i = 0; i < offspringPerRound / oldGeneration.length; i++)
@@ -157,8 +157,8 @@ function generatePathGenetic(graph){
 }
 
 //Show path and points
-function showPath(path, graph){
-    var ctx = document.getElementById("myCanvas").getContext("2d");
+function showPath(path, graph, canvasId, headlineId){
+    var ctx = document.getElementById(canvasId).getContext("2d");
     //ctx.clear();
     ctx.beginPath();
     ctx.moveTo(graph.nodes[path[0]].x, graph.nodes[path[0]].y);
@@ -173,15 +173,16 @@ function showPath(path, graph){
     ctx.stroke();
 
     let distance = graph.getPathDistance(path);
-    document.getElementById("hl").innerText = "Distance: " + distance; 
+    document.getElementById(headlineId).innerText = "Distance: " + distance; 
 }
 
 //---------------- MAIN ------------------
 let graph = generateGraph(10);
 function start(){
-    let path = generatePathGenetic(graph);
-    //let path = generatePathNearestNeighbour(graph);
-    showPath(path, graph);
+    let pathGenetic = generatePathGenetic(graph);
+    let pathNN = generatePathNearestNeighbour(graph);
+    showPath(path, graph, "canvasGenetic", "genetic_h1");
+    showPath(path, graph, "canvasNN", "nn_h1");    
 }
 
 window.onload = start;
