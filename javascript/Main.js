@@ -3,6 +3,8 @@ let ongoingGenetic = undefined;
 
 window.onload = function(){ 
     let canvas = document.getElementById("points_canvas");
+    showPoints(undefined, "points_canvas");
+
     canvas.addEventListener("mousedown", function(event){
         graph.addNode(event.offsetX, event.offsetY, newId());
         showPoints(graph, "points_canvas");

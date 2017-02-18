@@ -3,6 +3,8 @@ let newId = function(){
     return function(){return id++;}
 }();
 
+let deImg = document.getElementById("de");
+
 //Generate graph with random nodes
 function generateGraph(points){
     let graph = new Graph();
@@ -18,6 +20,8 @@ function showPath(path, graph, canvasId, headlineId, headlineprefix){
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, 1000, 1000);
     
+    ctx.drawImage(deImg, 0, 0, 300, 300);
+
     ctx.strokeStyle = "black"; 
        
     ctx.fillStyle = "red";
@@ -44,19 +48,23 @@ function showPoints(graph, canvasId){
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, 1000, 1000);
     
-    let ids = graph.getNodeIds();
+    ctx.drawImage(deImg, 0, 0, 300, 300);
 
-    if(ids.length > 0) //Start
-    {
-        ctx.fillStyle = "red";        
-        ctx.moveTo(graph.nodes[ids[0]].x, graph.nodes[ids[0]].y);
-        ctx.fillRect(graph.nodes[ids[0]].x - 10, graph.nodes[ids[0]].y - 10, 20, 20);
-    }
+    if(graph != undefined){
+        let ids = graph.getNodeIds();
 
-    ctx.fillStyle = "blue";
-    for(let i = 1; i < ids.length; i++) //Rest
-    {
-        ctx.moveTo(graph.nodes[ids[i]].x, graph.nodes[ids[i]].y);
-        ctx.fillRect(graph.nodes[ids[i]].x - 3, graph.nodes[ids[i]].y - 3, 6, 6);
+        if(ids.length > 0) //Start
+        {
+            ctx.fillStyle = "red";        
+            ctx.moveTo(graph.nodes[ids[0]].x, graph.nodes[ids[0]].y);
+            ctx.fillRect(graph.nodes[ids[0]].x - 10, graph.nodes[ids[0]].y - 10, 20, 20);
+        }
+
+        ctx.fillStyle = "blue";
+        for(let i = 1; i < ids.length; i++) //Rest
+        {
+            ctx.moveTo(graph.nodes[ids[i]].x, graph.nodes[ids[i]].y);
+            ctx.fillRect(graph.nodes[ids[i]].x - 3, graph.nodes[ids[i]].y - 3, 6, 6);
+        }
     }
 }
