@@ -1,0 +1,5 @@
+//insertion method
+//Refactoring
+
+UI for inserting points, setting start points
+Path timetable

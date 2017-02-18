@@ -21,6 +21,14 @@ let Graph = class{
         return distance;
     }
 
+    getPathTimetable(path){
+        for(let i = 0; i < path.length - 1; i++)
+        {
+            this.getDistance(path[i], path[i + 1])
+        }
+        return distance;
+    }
+
     getDistance(node_id, other_id)
     {
         return this.getDistance_Nodes(this.nodes[node_id], this.nodes[other_id]);
@@ -80,7 +88,7 @@ function generatePathNearestNeighbour(graph){
 
     pathNodes.push(pathNodes[0]);
 
-    showPath(pathNodes, graph, "canvasNN", "nn_h1", "Nearest Neighbour: ");      
+    showPath(pathNodes, graph, "canvasNN", "nn_h1", "Nearest Neighbour Method: ");      
 }
 
 //functions for the genetic generation of best paths
@@ -88,7 +96,7 @@ function generatePathNearestNeighbour(graph){
 //Generate a random path to start from
 function generateRandomPath(graph){
     let nodeIds = graph.getNodeIds();
-    let pathNodes = []; //Start with first
+    let pathNodes = [nodeIds.shift()]; //Start with first
     
     for(let i = 0; i < nodeIds.length; )
     {
@@ -97,7 +105,7 @@ function generateRandomPath(graph){
         nodeIds.splice(a, 1);
     }
 
-    pathNodes.push(pathNodes[0]);
+    pathNodes.push(pathNodes[0]); //End with the first again
 
     return pathNodes;
 }
@@ -107,7 +115,7 @@ function mutatePath(path){
     let outputPath = path.slice();
     let lastAndFirst = outputPath.pop();
 
-    if(lastAndFirst != outputPath[0])
+    if(lastAndFirst != outputPath.shift())
         throw new Error("Last and first should be same");
 
     let toMutate = Math.ceil(Math.random() * ((path.length - 1) / 50) + 1);
@@ -122,7 +130,9 @@ function mutatePath(path){
         outputPath.splice(randomOtherIndex, 0, elem);
     }
 
-    outputPath.push(outputPath[0]);
+    //Start and end with beginning node
+    outputPath.unshift(lastAndFirst);
+    outputPath.push(lastAndFirst);
 
     return outputPath;
 }
@@ -172,10 +182,10 @@ function generatePathGenetic(graph){
 
     //Going through the generations
     let round = 0;
-    setInterval(function(){
+    return setInterval(function(){
         generation = doGeneration(graph, generation, offspringPerGeneration, survivorsPerRound, randomPerRound);
         console.log("Best in round "+ round++ +": " + graph.getPathDistance(generation[0]));
-        showPath(generation[0], graph, "canvasGenetic", "genetic_h1", "Genetic: ");
+        showPath(generation[0], graph, "canvasGenetic", "genetic_h1", "Genetic Method: ");
     }, 1);
 }
 
@@ -186,12 +196,13 @@ function showPath(path, graph, canvasId, headlineId, headlineprefix){
     ctx.fillRect(0, 0, 1000, 1000);
     
     ctx.strokeStyle = "black"; 
-    ctx.fillStyle = "blue";
        
+    ctx.fillStyle = "red";
     ctx.beginPath();
     ctx.moveTo(graph.nodes[path[0]].x, graph.nodes[path[0]].y);
-    ctx.fillRect(graph.nodes[path[0]].x - 5, graph.nodes[path[0]].y - 5, 10, 10);
+    ctx.fillRect(graph.nodes[path[0]].x - 10, graph.nodes[path[0]].y - 10, 20, 20);
     
+    ctx.fillStyle = "blue";
     for(let i = 1; i < path.length; i++)
     {
         ctx.lineTo(graph.nodes[path[i]].x, graph.nodes[path[i]].y);
@@ -201,19 +212,51 @@ function showPath(path, graph, canvasId, headlineId, headlineprefix){
     ctx.stroke();
 
     let distance = graph.getPathDistance(path);
-    document.getElementById(headlineId).innerText = headlineprefix + distance; 
+    document.getElementById(headlineId).innerText = headlineprefix + distance + " length"; 
+}
+
+//Only show point
+function showPoints(graph, canvasId){
+    var ctx = document.getElementById(canvasId).getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 1000, 1000);
+    
+    let ids = graph.getNodeIds();
+
+    if(ids.length > 0) //Start
+    {
+        ctx.fillStyle = "red";        
+        ctx.moveTo(graph.nodes[ids[0]].x, graph.nodes[ids[0]].y);
+        ctx.fillRect(graph.nodes[ids[0]].x - 10, graph.nodes[ids[0]].y - 10, 20, 20);
+    }
+
+    ctx.fillStyle = "blue";
+    for(let i = 1; i < ids.length; i++) //Rest
+    {
+        ctx.moveTo(graph.nodes[ids[i]].x, graph.nodes[ids[i]].y);
+        ctx.fillRect(graph.nodes[ids[i]].x - 3, graph.nodes[ids[i]].y - 3, 6, 6);
+    }
 }
 
 //---------------- MAIN ------------------
 
-function newGraph(){
-    let graph = generateGraph(30);
-    findPaths(graph);
-}
+let graph = new Graph();
+let ongoingGenetic = undefined;
 
-function findPaths(graph){
-    generatePathGenetic(graph);
-    generatePathNearestNeighbour(graph);
-}
+window.onload = function(){ 
+    let canvas = document.getElementById("points_canvas");
+    canvas.addEventListener("mousedown", function(event){
+        graph.addNode(event.offsetX, event.offsetY, newId());
+        showPoints(graph, "points_canvas");
 
-window.onload = function(){ newGraph(); };
+        if(graph.getNodeIds().length > 1)
+        {
+            if(ongoingGenetic != undefined)
+                clearInterval(ongoingGenetic);
+
+            ongoingGenetic = generatePathGenetic(graph);
+            generatePathNearestNeighbour(graph);
+        }
+
+    }, false);
+};
