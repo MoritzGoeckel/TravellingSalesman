@@ -1,7 +1,7 @@
 # Travelling Salesman Problem
 This is a playground to deal with the tsp in javascript. There are currently two methods implemented.
 
-Check out the [demo](http://moritzgoeckel.com/TravellingSalesman/)
+Check out the -> [demo](http://moritzgoeckel.com/TravellingSalesman/) <-
 
 ## Nearest Neighbour
 It starts with the starting point for the path and chooses always the nearest point to the last point as the next point. In the end it will return to the starting point. This method is fast, but not a perfect solution.
