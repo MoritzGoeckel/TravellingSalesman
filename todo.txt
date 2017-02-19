@@ -1,4 +1,5 @@
 //insertion method
 //Refactoring
+//Clear Points
 
 Path timetable
