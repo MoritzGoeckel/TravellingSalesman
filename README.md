@@ -14,6 +14,3 @@ This algorithm will generate random paths with a given starting / end point in t
 
 # How to use
 Load the index.html and click on the top map to add waypoints. The first waypoint is red and represents the starting / end point. All other waypoints are blue. The maps bellow are the different methods with the graphical representation of the path.
-
-# Coding Challenge
-This project was created as a submition for a coding challenge of IT-Talents.de
